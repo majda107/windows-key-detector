@@ -6,6 +6,7 @@ using System.Diagnostics;
 
 namespace KeyDetectorNET
 {
+    public delegate void KeyDetectorEventHandler(object o, KeyDetectorEventArgs e);
     public class KeyDetector
     {
         /* PInvokes */
@@ -32,31 +33,43 @@ namespace KeyDetectorNET
         private const int WM_KEYDOWN = 0x0100;
 
         private delegate IntPtr LowLevelKeyboardProc(int nCode, IntPtr wParam, IntPtr lParam);
-        private static LowLevelKeyboardProc _proc = HookCallback;
-        private static IntPtr _hookID = IntPtr.Zero;
+        private LowLevelKeyboardProc _proc;
+        private IntPtr _hookID = IntPtr.Zero;
 
-        private delegate void KeyDetectorEventHandler(object o, KeyDetectorEventArgs e);
-        static private event KeyDetectorEventHandler KeyDetected;
+        public event KeyDetectorEventHandler KeyDetected;
+
         public KeyDetector()
         {
+            this._proc = this.HookCallback;
 
+            applicationThread = new Thread(() =>
+            {
+                this._hookID = SetHook(this._proc);
+                Application.Run();
+                UnhookWindowsHookEx(this._hookID);
+            });
         }
 
-        private static IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
+        public void Run()
+        {
+            this.applicationThread.Start();
+        }
+
+        private IntPtr HookCallback(int nCode, IntPtr wParam, IntPtr lParam)
         {
             if (nCode >= 0 && wParam == (IntPtr)WM_KEYDOWN)
             {
                 int vkCode = Marshal.ReadInt32(lParam);
-                if (KeyPressed != null)
+                if (KeyDetected != null)
                 {
-                    KeyPressed(null, new KeyPressedEventArgs((VirtualKeyStates)vkCode));
+                    KeyDetected(this, new KeyDetectorEventArgs((Keys)vkCode));
                 }
             }
 
             return CallNextHookEx(_hookID, nCode, wParam, lParam);
         }
 
-        private static IntPtr SetHook(LowLevelKeyboardProc proc)
+        private IntPtr SetHook(LowLevelKeyboardProc proc)
         {
             using (ProcessModule curModule = Process.GetCurrentProcess().MainModule)
             {
