@@ -16,8 +16,8 @@ namespace KeyDetectorNET
         private static LowLevelKeyboardProc _proc = HookCallback;
         private static IntPtr _hookID = IntPtr.Zero;
 
-        private delegate void KeyPressedEventHandler(object o, KeyPressedEventArgs e);
-        static private event KeyPressedEventHandler KeyPressed;
+        private delegate void KeyDetectorEventHandler(object o, KeyDetectorEventArgs e);
+        static private event KeyDetectorEventHandler KeyDetected;
         public KeyDetector()
         {
 
