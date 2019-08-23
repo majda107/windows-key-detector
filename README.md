@@ -2,10 +2,10 @@
 
 ### Example usage ###
 
-Create new instance of KeyDetector
+Create new instance of KeyDetector\
 `KeyDetector detector = new KeyDetector();`
 
-Hook events
+Hook events\
 `
 detector.KeyDetected += (o, e) =>
 	{
@@ -13,5 +13,5 @@ detector.KeyDetected += (o, e) =>
 	};
 `
 
-Start key detection thread
+Start key detection thread\
 `detector.Run();`
